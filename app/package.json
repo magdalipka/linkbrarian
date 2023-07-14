@@ -1,0 +1,45 @@
+{
+  "name": "bookmarker-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^1.8.8",
+    "@emotion/react": "^11.11.1",
+    "@emotion/server": "^11.11.0",
+    "@emotion/styled": "^11",
+    "@mantine/core": "^6.0.16",
+    "@mantine/form": "^6.0.16",
+    "@mantine/hooks": "^6.0.16",
+    "@mantine/next": "^6.0.16",
+    "@supabase/auth-helpers-nextjs": "^0.7.2",
+    "@supabase/auth-helpers-react": "^0.4.0",
+    "@supabase/auth-ui-react": "^0.4.2",
+    "@supabase/supabase-js": "^2.26.0",
+    "@tabler/icons-react": "^2.25.0",
+    "bcrypt": "^5.0.1",
+    "formik": "^2.2.9",
+    "framer-motion": "^6",
+    "got": "^12.0.3",
+    "metascraper": "^5.28.2",
+    "metascraper-description": "^5.28.2",
+    "metascraper-logo-favicon": "^5.28.5",
+    "nanoid": "^3.3.2",
+    "next": "^13.4.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.10.1",
+    "wretch": "^1.7.9"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/node": "17.0.23",
+    "@types/react": "16.14.0",
+    "typescript": "^5.1.6"
+  }
+}
