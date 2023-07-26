@@ -24,9 +24,7 @@ export const AppNavBar = ({ opened }: { opened: boolean }) => {
       // const { data, error } = await supabaseClient
       //   .from("workspace_members")
       //   .select("workspaces (id, name)");
-      const { data, error } = await supabaseClient
-        .from("workspaces")
-        .select("*");
+      const { data, error } = await supabaseClient.from("workspaces").select("*");
       console.log(data);
       if (!error) setWorkspaces(data);
     }
@@ -35,21 +33,19 @@ export const AppNavBar = ({ opened }: { opened: boolean }) => {
   }, [user]);
 
   return (
-    <Navbar
-      p="md"
-      hiddenBreakpoint="sm"
-      hidden={!opened}
-      width={{ sm: 200, lg: 300 }}
-    >
+    <Navbar p="md" hiddenBreakpoint="sm" hidden={!opened} width={{ sm: 200, lg: 300 }}>
       <Navbar.Section>
         <Link href="/">Linkbrarian</Link>
       </Navbar.Section>
       <Navbar.Section grow component={ScrollArea} mt="md">
         {workspaces.map((w) => (
-          <Link key={w.id} href={"/dashboard/workspaces/" + w.id}>
+          <Link key={"workspace_" + w.id} href={"/dashboard/workspaces/" + w.id}>
             <NavLink label={w.name} />
           </Link>
         ))}
+        <Link key={"workspace_new"} href={"/dashboard/workspaces/new"}>
+          <NavLink label="+" />
+        </Link>
       </Navbar.Section>
       <Navbar.Section>
         <UserFooter />

@@ -31,6 +31,7 @@
     "metascraper-logo-favicon": "^5.28.5",
     "nanoid": "^3.3.2",
     "next": "^13.4.10",
+    "nextjs-toploader": "^1.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",

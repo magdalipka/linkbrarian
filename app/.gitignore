@@ -40,6 +40,7 @@ yarn-error.log*
 
 # env
 .env
+.env.*
 
 # db
 *.sqlite

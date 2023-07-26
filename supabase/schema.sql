@@ -26,6 +26,18 @@ CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
+CREATE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+begin
+insert into public.pending_registrations(user_id, email)
+values(new.id, new.email);
+return new;
+end;
+$$;
+
+ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
+
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
@@ -35,7 +47,7 @@ CREATE TABLE "public"."bookmarks" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "name" "text" NOT NULL,
     "url" "text" NOT NULL,
-    "project_id" "uuid" NOT NULL,
+    "workspace_id" "uuid" NOT NULL,
     "parent_id" "uuid"
 );
 
@@ -46,16 +58,24 @@ CREATE TABLE "public"."directories" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "name" "text" NOT NULL,
     "parent_id" "uuid",
-    "project_id" "uuid" NOT NULL
+    "workspace_id" "uuid" NOT NULL
 );
 
 ALTER TABLE "public"."directories" OWNER TO "postgres";
+
+CREATE TABLE "public"."pending_registrations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "user_id" "uuid" NOT NULL,
+    "email" "text"
+);
+
+ALTER TABLE "public"."pending_registrations" OWNER TO "postgres";
 
 CREATE TABLE "public"."users" (
     "id" "uuid" NOT NULL,
     "created_at" timestamp without time zone DEFAULT ("now"() AT TIME ZONE 'utc'::"text") NOT NULL,
     "display_name" "text" NOT NULL,
-    "mail" "text" NOT NULL,
     "system_role" "text" DEFAULT 'user'::"text" NOT NULL,
     "nick" "text" NOT NULL
 );
@@ -86,14 +106,14 @@ ALTER TABLE ONLY "public"."bookmarks"
 ALTER TABLE ONLY "public"."directories"
     ADD CONSTRAINT "directories_pkey" PRIMARY KEY ("id");
 
+ALTER TABLE ONLY "public"."pending_registrations"
+    ADD CONSTRAINT "pending_registrations_pkey" PRIMARY KEY ("id");
+
 ALTER TABLE ONLY "public"."workspaces"
     ADD CONSTRAINT "projects_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_id_key" UNIQUE ("id");
-
-ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_mail_key" UNIQUE ("mail");
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_pkey" PRIMARY KEY ("nick");
@@ -102,16 +122,16 @@ ALTER TABLE ONLY "public"."workspace_members"
     ADD CONSTRAINT "workspace_members_pkey" PRIMARY KEY ("workspace_id", "user_id");
 
 ALTER TABLE ONLY "public"."bookmarks"
-    ADD CONSTRAINT "bookmarks_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."directories"("id");
-
-ALTER TABLE ONLY "public"."bookmarks"
-    ADD CONSTRAINT "bookmarks_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."workspaces"("id");
+    ADD CONSTRAINT "bookmarks_workspace_id_fkey" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id");
 
 ALTER TABLE ONLY "public"."directories"
     ADD CONSTRAINT "directories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."directories"("id");
 
 ALTER TABLE ONLY "public"."directories"
-    ADD CONSTRAINT "directories_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "public"."workspaces"("id");
+    ADD CONSTRAINT "directories_workspace_id_fkey" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id");
+
+ALTER TABLE ONLY "public"."pending_registrations"
+    ADD CONSTRAINT "pending_registrations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id");
@@ -130,9 +150,9 @@ ALTER TABLE "public"."bookmarks" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE "public"."directories" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "individuals can view their own todos" ON "public"."users" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "id"));
+CREATE POLICY "individuals can view their own profile" ON "public"."users" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "id"));
 
-CREATE POLICY "user can delete own profile" ON "public"."users" FOR DELETE TO "authenticated" USING (("auth"."uid"() = "id"));
+ALTER TABLE "public"."pending_registrations" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "user can see joined workspaces" ON "public"."workspace_members" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
 
@@ -153,6 +173,10 @@ GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
 
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "anon";
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
+
 GRANT ALL ON TABLE "public"."bookmarks" TO "anon";
 GRANT ALL ON TABLE "public"."bookmarks" TO "authenticated";
 GRANT ALL ON TABLE "public"."bookmarks" TO "service_role";
@@ -160,6 +184,10 @@ GRANT ALL ON TABLE "public"."bookmarks" TO "service_role";
 GRANT ALL ON TABLE "public"."directories" TO "anon";
 GRANT ALL ON TABLE "public"."directories" TO "authenticated";
 GRANT ALL ON TABLE "public"."directories" TO "service_role";
+
+GRANT ALL ON TABLE "public"."pending_registrations" TO "anon";
+GRANT ALL ON TABLE "public"."pending_registrations" TO "authenticated";
+GRANT ALL ON TABLE "public"."pending_registrations" TO "service_role";
 
 GRANT ALL ON TABLE "public"."users" TO "anon";
 GRANT ALL ON TABLE "public"."users" TO "authenticated";

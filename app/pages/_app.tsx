@@ -22,6 +22,7 @@ import {
   useUser,
 } from "@supabase/auth-helpers-react";
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import NextTopLoader from "nextjs-toploader";
 
 const App = ({ Component, pageProps, ...rest }: AppProps) => {
   const [supabaseClient] = useState(() => createPagesBrowserClient());
@@ -72,9 +73,7 @@ const AppPage = ({ Component, pageProps }: AppProps) => {
       styles={{
         main: {
           background:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[8]
-              : theme.colors.gray[0],
+            theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[0],
         },
       }}
       navbarOffsetBreakpoint="sm"
@@ -93,6 +92,7 @@ const AppPage = ({ Component, pageProps }: AppProps) => {
       //   </MediaQuery>
       // }
     >
+        <NextTopLoader />
       <Component {...pageProps} />
     </AppShell>
   );
