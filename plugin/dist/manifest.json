@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "Linkbrarian Plugin",
+  "description": "Linkbrarian Plugin",
+  "version": "1.0.0",
+  "browser_action": {
+    "default_icon": "icon-48.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["js/backgroundPage.js"],
+    "persistent": false
+  },
+  "icons": {
+    "32": "icon-32.png",
+    "48": "icon-48.png"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "notifications",
+    "http://*/",
+    "https://*/",
+    "<all_urls>"
+  ],
+  "host_permissions": [
+    "https://bcxjcmhyuiwptnsbknyc.supabase.co/*",
+    "http://localhost:3000/*"
+  ]
+}

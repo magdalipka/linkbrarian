@@ -12,7 +12,7 @@ import {
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import Link from "next/link";
-import { useProfile } from "@/common/useProfile";
+import { useProfile } from "@/context/profileContext";
 import {
   IconHome2,
   IconGauge,
@@ -23,25 +23,32 @@ import {
   IconShieldLock,
   IconLogout,
 } from "@tabler/icons-react";
+import { COLORS } from "@/common/colors";
 
 export const UserFooter = () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useUser();
   const profile = useProfile();
+  const [avatarUrl, setAvatarUrl] = React.useState();
 
-  const { data: avatarUrl } = supabaseClient.storage
-    .from("avatars")
-    .getPublicUrl(user?.id + "/avatar.png");
+  React.useEffect(() => {
+    const { data } = supabaseClient.storage
+      .from("avatars")
+      .getPublicUrl(user?.id + "/avatar.png");
+    // @ts-ignore
+    setAvatarUrl(data);
+  }, [profile.data]);
 
   return (
     <div>
       <Menu position="right-end" withArrow arrowPosition="center">
         <Menu.Target>
           <NavLink
-            label={profile?.display_name}
-            description={"@" + profile?.nick}
+            label={profile.data?.display_name}
+            description={"@" + profile.data?.nick}
             rightSection={<IconChevronRight size="0.8rem" stroke={1.5} />}
-            icon={<Avatar src={avatarUrl.publicUrl} />}
+            // @ts-ignore
+            icon={<Avatar src={avatarUrl?.publicUrl} />}
           />
         </Menu.Target>
 
@@ -49,7 +56,7 @@ export const UserFooter = () => {
           <Link href="/settings">
             <Menu.Item icon={<IconSettings size={14} />}>Settings</Menu.Item>
           </Link>
-          {profile?.system_role === "admin" ? (
+          {profile.data?.system_role === "admin" ? (
             <Link href="/admin">
               <Menu.Item icon={<IconShieldLock size="0.8rem" stroke={1.5} />}>
                 Admin panel
@@ -59,7 +66,7 @@ export const UserFooter = () => {
             <></>
           )}
           <Menu.Item
-            color="red"
+            color={COLORS.red}
             icon={<IconLogout size="0.8rem" stroke={1.5} />}
             onClick={() => supabaseClient.auth.signOut()}
           >

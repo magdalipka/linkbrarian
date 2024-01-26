@@ -2,7 +2,8 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: IBM Plex Sans, sans-serif;
+  font-family: var(--font-mono);
+  font-family: IBM Plex Mono;
 }
 
 a {

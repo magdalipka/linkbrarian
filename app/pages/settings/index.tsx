@@ -1,31 +1,43 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Workspace, Database } from "@/common/dbTypes";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
-import { useState } from "react";
-import { Button, Checkbox, FileButton, Group, Text, TextInput } from "@mantine/core";
+import {
+  Button,
+  Checkbox,
+  Container,
+  FileButton,
+  Flex,
+  Group,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useProfile } from "@/common/useProfile";
+import { useProfile } from "@/context/profileContext";
 
 const AdminView = () => {
   const supabaseClient = useSupabaseClient<Database>();
   const user = useUser();
   const profile = useProfile();
 
-  const [avatar, setAvatar] = useState();
+  const [message, setMessage] = React.useState<string>();
+
+  const [avatar, setAvatar] = React.useState();
 
   const form = useForm({
     initialValues: {
       email: user?.email,
-      nick: profile?.nick,
-      display_name: profile?.display_name,
+      nick: profile.data?.nick,
+      display_name: profile.data?.display_name,
     },
 
     validate: {
+      // @ts-ignore
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
     },
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     form.setValues((prev) => ({ ...prev, ...profile }));
   }, [profile]);
 
@@ -54,32 +66,66 @@ const AdminView = () => {
   }
 
   return (
-    <div>
-      <FileButton onChange={setAvatar} accept="image/png,image/jpeg">
-        {(props) => <Button {...props}>Upload image</Button>}
-      </FileButton>
-      <form onSubmit={submit}>
-        <TextInput
-          withAsterisk
-          label="Email"
-          placeholder="your@email.com"
-          {...form.getInputProps("email")}
-        />
-        <TextInput withAsterisk label="Nick" {...form.getInputProps("nick")} />
-        <TextInput withAsterisk label="Name" {...form.getInputProps("display_name")} />
-        <Group position="right" mt="md">
+    <Container>
+      <Container>
+        <Title>My profile</Title>
+        {/* @ts-ignore */}
+        <FileButton onChange={setAvatar} accept="image/png,image/jpeg">
+          {(props) => <Button {...props}>Upload new image</Button>}
+        </FileButton>
+        <form onSubmit={submit}>
+          <TextInput
+            withAsterisk
+            label="Email"
+            placeholder="your@email.com"
+            {...form.getInputProps("email")}
+          />
+          <TextInput withAsterisk label="Nick" {...form.getInputProps("nick")} />
+          <TextInput withAsterisk label="Name" {...form.getInputProps("display_name")} />
+          <Group position="right" mt="md">
+            <Button
+              type="submit"
+              onClick={async (e) => {
+                e.preventDefault();
+                await submit();
+                profile.refetch();
+              }}
+            >
+              Submit
+            </Button>
+          </Group>
+        </form>
+      </Container>
+      <Container>
+        <Title>Access tokens</Title>
+        <Flex gap="1em">
           <Button
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              submit();
+            color="red"
+            onClick={async () => {
+              // @ts-ignore
+              await supabaseClient.rpc("delete_all_tokens");
             }}
           >
-            Submit
+            Delete all access tokens
           </Button>
-        </Group>
-      </form>
-    </div>
+          <Button
+            onClick={async () => {
+              // @ts-ignore
+              const { data: newToken } = await supabaseClient.rpc("generate_new_token");
+              // @ts-ignore
+              setMessage(
+                "New token: " +
+                  JSON.stringify(newToken) +
+                  " - it will never be shown again.",
+              );
+            }}
+          >
+            Get new access token
+          </Button>
+          <Text>{message}</Text>
+        </Flex>
+      </Container>
+    </Container>
   );
 };
 
