@@ -86,7 +86,7 @@ const AppPage = ({ Component, pageProps }: AppProps) => {
         redirectTo="https://linkbrarian.vercel.app/dashboard"
         appearance={{ theme: ThemeSupa }}
         supabaseClient={supabaseClient}
-        providers={["google", "github"]}
+        providers={["github"]}
         socialLayout="horizontal"
       />
     );
